@@ -1,0 +1,39 @@
+// DAX Measures for aircraft_readiness.pbix
+
+// Fleet MC Rate
+Fleet MC Rate =
+DIVIDE(
+    SUMX(fact_readiness, fact_readiness[fmc_hours] + fact_readiness[pmc_hours]),
+    SUM(fact_readiness[possessed_hours])
+)
+
+// Fleet FMC Rate
+Fleet FMC Rate =
+DIVIDE(
+    SUM(fact_readiness[fmc_hours]),
+    SUM(fact_readiness[possessed_hours])
+)
+
+// NMC Supply Rate
+NMC Supply Rate =
+DIVIDE(
+    SUM(fact_readiness[nmc_supply_hours]),
+    SUM(fact_readiness[possessed_hours])
+)
+
+// NMC Maintenance Rate
+NMC Maintenance Rate =
+DIVIDE(
+    SUM(fact_readiness[nmc_maintenance_hours]),
+    SUM(fact_readiness[possessed_hours])
+)
+
+// Aircraft Count
+Aircraft Count = DISTINCTCOUNT(fact_readiness[tail_number])
+
+// MC Rate (per aircraft, for detail pages)
+MC Rate =
+DIVIDE(
+    SUM(fact_readiness[fmc_hours]) + SUM(fact_readiness[pmc_hours]),
+    SUM(fact_readiness[possessed_hours])
+)
