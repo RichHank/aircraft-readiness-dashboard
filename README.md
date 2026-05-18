@@ -179,7 +179,7 @@ All registration numbers are replaced with stable synthetic aircraft IDs before 
 **Richard Hankins**  
 Aviation Maintenance Team Lead — U.S. Army | BBA Candidate (4.0 GPA) | Active Secret Clearance
 
-Six years supervising Black Hawk maintenance taught me that the useful question is rarely “what happened?” It is “what keeps happening, what does it cost us, and what should leadership look at next?” This project is my translation of that operational mindset into civilian aviation analytics.
+Four years supervising Black Hawk maintenance taught me that the useful question is rarely “what happened?” It is “what keeps happening, what does it cost us, and what should leadership look at next?” This project is my translation of that operational mindset into civilian aviation analytics.
 
 I am especially interested in aviation data analyst roles where maintenance knowledge, Power BI, SQL, and practical decision support meet.
 
