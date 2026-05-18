@@ -1,185 +1,186 @@
 # Aircraft Readiness Analytics Dashboard
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?logo=sqlite&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Analytics-003B57?logo=sqlite&logoColor=white)
 ![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-F2C811?logo=powerbi&logoColor=black)
 ![pandas](https://img.shields.io/badge/pandas-ETL-150458?logo=pandas&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Complete-brightgreen)
+![Status](https://img.shields.io/badge/Status-Portfolio%20Ready-brightgreen)
 
-> **194,844 FAA Service Difficulty Reports. Three years of data. One clear finding: fuselage structural maintenance is breaking the fleet — and nobody is fixing it.**
+> End-to-end aviation maintenance analytics project turning **194,844 public FAA Service Difficulty Reports** into a repeat-discrepancy model, a SQLite analytics layer, and a **3-page Power BI dashboard** for maintenance burden analysis.
 
----
+![Power BI dashboard overview](docs/screenshots/powerbi_page_1.png)
 
-## The Problem
+## 30-second read
 
-U.S. civil aviation generates tens of thousands of maintenance discrepancy reports every year. Most of them are noise. Some of them are signals that the same aircraft, the same system, and the same failure mode keep coming back — and no one is connecting the dots at scale.
+**Problem:** maintenance leaders do not just need event counts; they need to know which discrepancies keep coming back, where burden is concentrated, and which patterns deserve investigation.  
+**What I built:** Python ETL → normalized event model → SQLite views → Power BI dashboard with repeat-discrepancy logic and a documented availability proxy.  
+**What it found:** in this public SDR dataset, **ATA 53 / Fuselage** produced **75,690 events** with an **87.1% repeat-discrepancy rate**; **Airframe** systems repeated at **74.2%** versus **13.5%** for **Hydraulics**.
 
-This project does exactly that.
+## Why this project matters
 
----
+This is the kind of analysis maintenance organizations actually need: not a pretty chart detached from operations, but a workflow that moves from messy public records to a decision-ready view of recurring burden. It is intentionally built around aviation concepts — ATA chapters, repeat discrepancies, readiness-style KPIs, and operational caveats — because good analytics should respect the shape of the domain it serves.
 
-## Key Findings
+For a hiring manager, this project demonstrates four things at once:
 
-### Finding 1 — Fuselage (ATA 53) Dominates the Maintenance Burden
+- aviation maintenance fluency
+- data engineering discipline
+- Power BI storytelling
+- restraint about what the data can and cannot prove
 
-| ATA Chapter | System | Total Events | Repeat Rate |
-|-------------|--------|-------------|-------------|
-| **53** | **Fuselage** | **75,690** | **87.1%** |
-| 57 | Wings | 16,000 | 70.4% |
-| 52 | Doors | 17,492 | 40.0% |
-| 55 | Stabilizers | 6,057 | 58.6% |
+## Dashboard preview
 
-Nearly **9 out of every 10** fuselage maintenance events are repeat discrepancies — the same aircraft, the same airframe, within 30 days.
+| Page 1 — recurring burden | Page 2 — trend analysis |
+| --- | --- |
+| ![Power BI recurring burden page](docs/screenshots/powerbi_page_1.png) | ![Power BI trend analysis page](docs/screenshots/powerbi_page_2.png) |
 
----
+| Page 3 — aircraft drill-down | Full dashboard file |
+| --- | --- |
+| ![Power BI aircraft detail page](docs/screenshots/powerbi_page_3.png) | [`powerbi/aircraft_readiness.pbix`](powerbi/aircraft_readiness.pbix) |
 
-### Finding 2 — Structural Systems Repeat at 5× the Rate of Mechanical Systems
+The Power BI file is organized as a compact analyst workflow:
 
-| System Group | Total Events | Repeat Rate |
-|-------------|-------------|-------------|
-| **Airframe** | **120,637** | **74.2%** |
-| Electrical | 26,055 | 34.8% |
-| Propulsion | 8,771 | 21.2% |
-| Landing Gear | 4,165 | 16.8% |
-| **Hydraulics** | **1,580** | **13.5%** |
+| Dashboard page | Primary question | Typical decision supported |
+| --- | --- | --- |
+| Fleet overview | Where is the maintenance burden concentrated? | Prioritize systems for review |
+| Trend analysis | Is the burden changing over time? | Separate persistent issues from one-off spikes |
+| Aircraft detail | Which aircraft deserve drill-down? | Identify candidates for deeper maintenance investigation |
 
-Hydraulics and landing gear involve discrete component swaps — fix it, done. Structural corrosion and fatigue are progressive. You treat them incrementally. They come back.
+See the fuller walkthrough in [`docs/dashboard_walkthrough.md`](docs/dashboard_walkthrough.md).
 
----
+## Business questions answered
 
-### Finding 3 — Fleet Availability Is Flat. The Burden Isn't Improving.
+1. Which ATA chapters generate the largest maintenance burden?
+2. Which systems show the highest repeat-discrepancy rates?
+3. Is the maintenance burden improving, worsening, or staying flat over time?
+4. Which aircraft cluster near the bottom of the availability proxy?
+5. What additional data would be required before making a true operational-readiness claim?
 
-| Year | Avg Availability Rate | Total Events |
-|------|-----------------------|-------------|
-| 2023 | 94.1% | 62,336 |
-| 2024 | 94.0% | 65,695 |
-| 2025 | 94.4% | 66,813 |
+## Key findings
 
-Event volume is growing year over year. Availability isn't moving. The fleet is absorbing the load — but the structural maintenance burden is not being reduced.
+| Finding | Evidence | Why it matters |
+| --- | --- | --- |
+| **Fuselage dominates recurring burden** | ATA 53: **75,690 events**, **87.1% repeat rate** | Structural issues are the clearest recurring signal in the dataset |
+| **Airframe systems repeat far more often than hydraulic systems** | Airframe **74.2%** vs Hydraulics **13.5%** | Helps separate chronic structural burden from lower-repeat mechanical categories |
+| **The burden persists across the period** | Avg availability proxy: **94.1% → 94.0% → 94.4%** from 2023–2025 | Volume rises while the proxy remains broadly flat |
+| **Certain aircraft families warrant investigation** | 5 of the 10 lowest proxy performers are Canadair CL600-series aircraft | Useful lead for follow-up analysis with richer operator data |
 
----
+The careful version matters: these are **directional findings from public SDR data**, not official claims about real fleet readiness. The project documents that distinction in [`docs/ASSUMPTIONS_AND_LIMITATIONS.md`](docs/ASSUMPTIONS_AND_LIMITATIONS.md).
 
-### Finding 4 — Canadair Regional Jets Cluster at the Bottom
+## How it works
 
-Of the 10 worst-performing aircraft by availability proxy, 5 are Canadair CL600-series regional jets — a pattern consistent enough to warrant targeted investigation with actual labor-hour data.
-
----
-
-### Finding 5 — March Is Consistently the Highest-Volume Month
-
-March ranks #1 in event volume for both 2023 and 2025. A seasonal inspection cycle — annual or semi-annual checks timed to late winter — is the likely driver, surfacing structural discrepancies that were deferred through the fall.
-
----
-
-## Why This Analysis Is Different
-
-Most maintenance analytics stops at event counts. This project goes further:
-
-- **Repeat discrepancy detection** — flags when the same aircraft reports the same ATA chapter within 30 days, isolating chronic failure patterns from one-time events
-- **Availability proxy modeling** — estimates operational availability from SDR data alone, without access to actual utilization records
-- **System-group aggregation** — rolls ATA chapters into operational categories (Airframe, Propulsion, Hydraulics, etc.) to surface strategic patterns invisible at the chapter level
-
----
-
-## Architecture
-
-```
-FAA SDR Raw Data (2023–2025)
+```text
+FAA SDR CSVs (2023–2025)
         │
         ▼
-┌───────────────┐
-│  ETL Pipeline │  ← Python / pandas
-│  (5 scripts)  │     clean, deduplicate, anonymize, flag repeats
-└───────┬───────┘
+extract_sdr.py
         │
         ▼
-┌───────────────┐
-│  SQLite DB    │  ← Validated KPIs, analytical views
-│  readiness.db │
-└───────┬───────┘
+clean_sdr.py
+  - parse dates
+  - deduplicate events
+  - anonymize tail numbers
+  - flag 30-day repeats
         │
         ▼
-┌───────────────┐
-│  Power BI     │  ← 3-page interactive dashboard
-│  Dashboard    │     slicers: system group, aircraft type
-└───────────────┘
+normalize_components.py
+  - map ATA chapters
+  - group systems
+        │
+        ▼
+build_fact_table.py
+  - create monthly readiness proxy
+  - build dimensions
+        │
+        ▼
+export_powerbi_csv.py
+        │
+        ├──────────────► SQLite analytics layer
+        │
+        └──────────────► Power BI dashboard
 ```
 
----
+## Skills demonstrated
 
-## Project Structure
+| Capability | Evidence in this repo |
+| --- | --- |
+| ETL development | Multi-step Python pipeline in [`etl/`](etl/) |
+| Data modeling | Fact/dimension exports for Power BI and SQLite views |
+| SQL analytics | KPI queries and reusable views in [`sql/`](sql/) |
+| Power BI development | `.pbix` file plus documented DAX measures |
+| Domain reasoning | ATA mapping, repeat-discrepancy heuristic, readiness proxy caveats |
+| Documentation | Findings, methodology, assumptions, and data dictionary |
 
-```
+## Repository map
+
+```text
 aircraft-readiness-dashboard/
 ├── data/
-│   ├── raw/                        # Original FAA SDR CSVs (not tracked)
-│   └── processed/
-│       ├── sdr_clean.csv           # Cleaned, deduplicated event data
-│       ├── powerbi_*.csv           # Star-schema exports for Power BI
-│       └── readiness.db            # SQLite database
-├── etl/
-│   ├── stage_sdr.py                # Ingest raw FAA files
-│   ├── clean_sdr.py                # Clean + flag repeats
-│   ├── build_dims.py               # Build dimension tables
-│   ├── build_facts.py              # Build fact tables
-│   └── export_powerbi.py           # Export CSVs for Power BI
-├── sql/
-│   ├── views.sql                   # Analytical views
-│   └── load_db.py                  # Load all tables + run KPI validation
-├── powerbi/
-│   ├── aircraft_readiness.pbix     # Power BI dashboard file
-│   └── dax_measures.txt            # DAX measure definitions
+│   ├── raw/                      # FAA SDR source files
+│   └── processed/                # Cleaned data, Power BI exports, SQLite database
 ├── docs/
-│   ├── findings.md                 # Full written findings (verified against DB)
-│   └── ASSUMPTIONS_AND_LIMITATIONS.md
-└── data_profiling.ipynb            # EDA and data quality profiling
+│   ├── screenshots/              # Visual outputs used in the README
+│   ├── ASSUMPTIONS_AND_LIMITATIONS.md
+│   ├── dashboard_walkthrough.md
+│   ├── data_dictionary.md
+│   ├── findings.md
+│   └── methodology.md
+├── etl/
+│   ├── extract_sdr.py
+│   ├── clean_sdr.py
+│   ├── normalize_components.py
+│   ├── build_fact_table.py
+│   └── export_powerbi_csv.py
+├── powerbi/
+│   ├── aircraft_readiness.pbix
+│   └── dax_measures.txt
+├── sql/
+│   ├── kpi_queries.sql
+│   ├── load_db.py
+│   ├── schema.sql
+│   ├── validation_queries.sql
+│   └── views.sql
+└── tests/
 ```
 
----
-
-## Tech Stack
-
-| Tool | Purpose |
-|------|---------|
-| Python 3.11 | ETL pipeline, data cleaning, repeat-flag logic |
-| pandas | Data transformation and aggregation |
-| SQLite | Analytical database and KPI validation |
-| Power BI Desktop | Interactive 3-page dashboard |
-| Jupyter | Exploratory data analysis and profiling |
-
----
-
-## Running the Pipeline
+## Reproduce the pipeline
 
 ```bash
 pip install -r requirements.txt
 
-python etl/stage_sdr.py
+python etl/extract_sdr.py
 python etl/clean_sdr.py
-python etl/build_dims.py
-python etl/build_facts.py
-python etl/export_powerbi.py
+python etl/normalize_components.py
+python etl/build_fact_table.py
+python etl/export_powerbi_csv.py
 python sql/load_db.py
+python -m pytest -q
 ```
 
----
+## Evidence pack
 
-## Data Source
+- [`docs/findings.md`](docs/findings.md) — written findings with supporting tables
+- [`docs/methodology.md`](docs/methodology.md) — how the analysis was built
+- [`docs/data_dictionary.md`](docs/data_dictionary.md) — final Power BI / SQLite field definitions
+- [`docs/ASSUMPTIONS_AND_LIMITATIONS.md`](docs/ASSUMPTIONS_AND_LIMITATIONS.md) — what the data does **not** support
+- [`powerbi/dax_measures.txt`](powerbi/dax_measures.txt) — dashboard measures
 
-**FAA Service Difficulty Reporting System (SDRS)**
-- Public dataset maintained by the Federal Aviation Administration
-- Years: 2023, 2024, 2025
-- Records analyzed: 194,844
-- Unique aircraft: 12,226
-- All tail numbers anonymized via SHA-256 hash → synthetic aircraft IDs
+## Data source
 
----
+**FAA Service Difficulty Reporting System (SDRS)**  
+- public civil-aviation maintenance dataset
+- reporting years analyzed: **2023, 2024, 2025**
+- events analyzed: **194,844**
+- unique aircraft identifiers after anonymization: **12,226**
 
-## Author
+All registration numbers are replaced with stable synthetic aircraft IDs before downstream analysis.
 
-**Richard Hankins**
+## About the analyst
+
+**Richard Hankins**  
 Aviation Maintenance Team Lead — U.S. Army | BBA Candidate (4.0 GPA) | Active Secret Clearance
 
-Six years supervising Black Hawk helicopter maintenance — tracking readiness metrics, managing $144M–$180M in aircraft assets, and translating raw maintenance logs into actionable briefings for leadership. This project applies that operational context to FAA public data at scale.
+Six years supervising Black Hawk maintenance taught me that the useful question is rarely “what happened?” It is “what keeps happening, what does it cost us, and what should leadership look at next?” This project is my translation of that operational mindset into civilian aviation analytics.
+
+I am especially interested in aviation data analyst roles where maintenance knowledge, Power BI, SQL, and practical decision support meet.
 
 [LinkedIn](https://linkedin.com/in/richardhankinsjr) · [GitHub](https://github.com/RichHank)

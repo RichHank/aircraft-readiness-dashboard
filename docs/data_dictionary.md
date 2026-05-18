@@ -1,100 +1,81 @@
 # Data Dictionary
 
-All data is sourced from public FAA/ASRS records or clearly labeled synthetic demo data.
-No real military readiness figures or sensitive operational data are used.
+This dictionary documents the final analyst-facing tables exported for Power BI and loaded into SQLite.
 
----
+## `fact_readiness`
 
-## fact_maintenance_events
+One row per synthetic aircraft per reporting month.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| event_id | INTEGER | Surrogate primary key |
-| aircraft_id | TEXT | FK → dim_aircraft |
-| component_id | TEXT | FK → dim_component (ATA chapter) |
-| date_id | INTEGER | FK → dim_date (YYYYMMDD) |
-| event_type | TEXT | "Unscheduled", "Scheduled", or "Repeat" |
-| downtime_hours | REAL | Hours aircraft was out of service for this event |
-| is_repeat | INTEGER | 1 if same component failed within 30 days of prior event |
-| corrective_action | TEXT | Description of corrective action taken |
-| source_report | TEXT | Origin: "FAA-SDR", "ASRS", or "Synthetic-Demo" |
+| Field | Description |
+| --- | --- |
+| `Aircraft ID` | Stable synthetic aircraft identifier |
+| `Date ID` | Month key in `YYYYMM` format |
+| `Year` | Reporting year |
+| `Month` | Reporting month number |
+| `Failure Count` | Maintenance events observed for the aircraft-month |
+| `Repeat Count` | Events flagged as repeat discrepancies |
+| `Downtime Hours` | Estimated monthly downtime hours |
+| `Top ATA Chapter` | Most frequent ATA chapter for the aircraft-month |
+| `Top System Group` | Most frequent system group for the aircraft-month |
+| `Total Hours` | Assumed possessed hours in the month |
+| `Available Hours` | `Total Hours - Downtime Hours` |
+| `Availability Rate` | Availability proxy for the aircraft-month |
+| `Repeat Discrepancy Rate` | `Repeat Count / Failure Count` |
 
----
+## `dim_aircraft`
 
-## fact_readiness_proxy
+| Field | Description |
+| --- | --- |
+| `Aircraft ID` | Stable synthetic aircraft identifier |
+| `Make` | Aircraft manufacturer |
+| `Model` | Aircraft model |
+| `First Seen Year` | First year observed in the dataset |
+| `Last Seen Year` | Last year observed in the dataset |
+| `Total Events` | Total event count for the aircraft |
 
-One row per aircraft per reporting period. Derived from `fact_maintenance_events`.
+## `dim_date`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| proxy_id | INTEGER | Surrogate primary key |
-| aircraft_id | TEXT | FK → dim_aircraft |
-| date_id | INTEGER | FK → dim_date |
-| available_hours | REAL | Hours available for operations (total − downtime) |
-| total_hours | REAL | Total hours in reporting period |
-| downtime_hours | REAL | Sum of maintenance event downtime for the period |
-| failure_count | INTEGER | Number of maintenance events in the period |
-| repeat_count | INTEGER | Number of repeat discrepancy events |
-| availability_rate | REAL | available_hours / total_hours — primary readiness proxy |
-| repeat_disc_rate | REAL | repeat_count / failure_count |
+| Field | Description |
+| --- | --- |
+| `Year` | Reporting year |
+| `Month Number` | Reporting month number |
+| `Date ID` | Month key in `YYYYMM` format |
+| `Quarter` | Calendar quarter |
+| `Month Label` | Display label such as `Jan 2025` |
 
----
+## `dim_component`
 
-## dim_aircraft
+| Field | Description |
+| --- | --- |
+| `Component ID` | Component key such as `ATA-53` |
+| `ATA Chapter` | ATA chapter code |
+| `ATA Description` | Human-readable ATA chapter name |
+| `System Group` | Higher-level grouping such as Airframe or Hydraulics |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| aircraft_id | TEXT | Synthetic ID (e.g. AC-001); not a real tail number |
-| aircraft_type | TEXT | "Fixed-Wing" or "Rotary-Wing" |
-| model_series | TEXT | Generic series label (e.g. "Model-A") — not a real MDS |
-| operator_code | TEXT | Anonymized operator code |
-| manufacture_year | INTEGER | Year of manufacture |
+## `events_detail`
 
----
+Event-level table used for drill-down analysis.
 
-## dim_component
+| Field | Description |
+| --- | --- |
+| `Aircraft ID` | Stable synthetic aircraft identifier |
+| `Event Date` | Date of the maintenance event |
+| `Year` | Source year |
+| `ATA Chapter` | ATA chapter code |
+| `ATA Description` | Human-readable ATA chapter name |
+| `System Group` | Higher-level system grouping |
+| `Condition` | Standardized condition label |
+| `Part Condition` | Original part-condition field from SDR |
+| `Part Name` | Part name from SDR |
+| `Make` | Aircraft manufacturer |
+| `Model` | Aircraft model |
+| `Is Repeat` | `1` when flagged as a repeat discrepancy |
+| `Days Since Last Event` | Days since the prior same-aircraft / same-ATA event |
+| `Stage of Operation` | SDR stage-of-operation code |
+| `How Discovered` | SDR discovery-method code |
 
-| Field | Type | Description |
-|-------|------|-------------|
-| component_id | TEXT | Unique component identifier |
-| ata_chapter | TEXT | ATA 100 chapter code (e.g. "32" = Landing Gear) |
-| ata_description | TEXT | Human-readable ATA chapter name |
-| system_group | TEXT | High-level grouping: "Airframe", "Propulsion", "Avionics", "Hydraulics", etc. |
+## Notes
 
----
-
-## dim_date
-
-| Field | Type | Description |
-|-------|------|-------------|
-| date_id | INTEGER | YYYYMMDD surrogate key |
-| date | TEXT | ISO date string |
-| year | INTEGER | Calendar year |
-| month | INTEGER | Month (1–12) |
-| quarter | INTEGER | Calendar quarter (1–4) |
-| week_of_year | INTEGER | ISO week number |
-
----
-
-## Event Type Definitions
-
-| Value | Meaning |
-|-------|---------|
-| Unscheduled | Maintenance event not on the planned schedule |
-| Scheduled | Routine/planned maintenance |
-| Repeat | Same component/discrepancy within 30 days of prior fix |
-
----
-
-## ATA Chapter Reference (partial)
-
-| Chapter | System |
-|---------|--------|
-| 21 | Air Conditioning |
-| 24 | Electrical Power |
-| 27 | Flight Controls |
-| 28 | Fuel |
-| 29 | Hydraulic Power |
-| 32 | Landing Gear |
-| 34 | Navigation |
-| 71–80 | Propulsion |
+- Real registration numbers are not exposed downstream.
+- All aircraft IDs are synthetic hashes generated during cleaning.
+- `Availability Rate` is a documented proxy, not an official operational-readiness metric.

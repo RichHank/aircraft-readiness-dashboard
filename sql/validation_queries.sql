@@ -1,33 +1,43 @@
--- Post-ETL data validation
+-- Post-load validation for the final SQLite analytics layer
 
--- Availability rate must be between 0 and 1
-SELECT aircraft_id, date_id, availability_rate
-FROM fact_readiness_proxy
-WHERE availability_rate < 0 OR availability_rate > 1;
+-- Availability proxy must remain between 0 and 1
+SELECT
+    [Aircraft ID],
+    [Date ID],
+    [Availability Rate]
+FROM fact_readiness
+WHERE [Availability Rate] < 0 OR [Availability Rate] > 1;
 
--- Downtime cannot exceed total hours in period
-SELECT aircraft_id, date_id, downtime_hours, total_hours
-FROM fact_readiness_proxy
-WHERE downtime_hours > total_hours + 0.01;
+-- Downtime cannot exceed assumed total monthly hours
+SELECT
+    [Aircraft ID],
+    [Date ID],
+    [Downtime Hours],
+    [Total Hours]
+FROM fact_readiness
+WHERE [Downtime Hours] > [Total Hours] + 0.01;
 
 -- Repeat count cannot exceed failure count
-SELECT aircraft_id, date_id, repeat_count, failure_count
-FROM fact_readiness_proxy
-WHERE repeat_count > failure_count;
+SELECT
+    [Aircraft ID],
+    [Date ID],
+    [Repeat Count],
+    [Failure Count]
+FROM fact_readiness
+WHERE [Repeat Count] > [Failure Count];
 
--- No negative downtime on individual events
-SELECT event_id, aircraft_id, downtime_hours
-FROM fact_maintenance_events
-WHERE downtime_hours < 0 OR downtime_hours IS NULL;
+-- No orphaned aircraft in the monthly fact table
+SELECT
+    f.[Aircraft ID]
+FROM fact_readiness f
+LEFT JOIN dim_aircraft a
+    ON f.[Aircraft ID] = a.[Aircraft ID]
+WHERE a.[Aircraft ID] IS NULL;
 
--- Orphaned events (no matching aircraft)
-SELECT e.aircraft_id
-FROM fact_maintenance_events e
-LEFT JOIN dim_aircraft a ON e.aircraft_id = a.aircraft_id
-WHERE a.aircraft_id IS NULL;
-
--- Orphaned events (no matching component)
-SELECT e.component_id
-FROM fact_maintenance_events e
-LEFT JOIN dim_component c ON e.component_id = c.component_id
-WHERE c.component_id IS NULL;
+-- No orphaned ATA chapters in the event detail table
+SELECT
+    e.[ATA Chapter]
+FROM events_detail e
+LEFT JOIN dim_component c
+    ON e.[ATA Chapter] = c.[ATA Chapter]
+WHERE c.[ATA Chapter] IS NULL;
